@@ -73,7 +73,7 @@ using UnityEditor;
      }
 
 
-    public static void MoveChildrenToParent(this Transform parent, Transform newParent, int fromChild, int toChild)
+    public static void MoveChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild)
     {
         for (int i=fromChild; i<toChild; i++)
         {
@@ -81,10 +81,10 @@ using UnityEditor;
         }
     }
  
-    public static void MoveAllChildrenToParent(this Transform parent, Transform newParent)
+    public static void MoveAllChildrenToDifferentParent(this Transform parent, Transform newParent)
     {
         int to = parent.childCount;
-        MoveChildrenToParent(parent, newParent, 0, to);
+        MoveChildrenToDifferentParent(parent, newParent, 0, to);
     }
 
     public static void CopyChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild)
