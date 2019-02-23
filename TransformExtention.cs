@@ -28,25 +28,18 @@ using System.Linq;
     //Depth-first search
     public static Transform FindChildDFS(this Transform Parent, string Name)
     {
-        foreach(Transform child in Parent)
-        {
-            if(child.name == Name )
-                return child;
-            var result = child.FindChildDFS(Name);
-            if (result != null)
-                return result;
-        }
-        return null;
+      return Parent.Find(Name) ??
+        Parent.Children()
+          .Select(child => child.FindChildDFS(Name))
+          .Where(result => result != null)
+          .FirstOrDefault();
     }
 
     public static Transform FindChildbyTag(this Transform Parent, string Tag)
     {
-        foreach(Transform child in Parent)
-        {
-            if(child.tag == Tag)
-                return child;    
-        }
-        return null;
+		    return Parent.Children()
+			     .Where(child => child.tag == Tag)
+			     .FirstOrDefault();
     }
 
 
@@ -69,15 +62,11 @@ using System.Linq;
     //Depth-first search
     public static Transform FindChildByTagDFS(this Transform Parent, string Tag)
     {
-        foreach(Transform child in Parent)
-        {
-            if(child.tag == Tag )
-                return child;
-            var result = child.FindChildByTagDFS(Tag);
-            if (result != null)
-                return result;
-        }
-        return null;
+      return Parent.FindChildbyTag(Tag) ??
+        Parent.Children()
+          .Select(child => child.FindChildByTagDFS(Tag))
+          .Where(result => result != null)
+          .FirstOrDefault();
     }
 
     
@@ -251,4 +240,9 @@ using System.Linq;
         }
     }
 
+    private static IEnumerable<Transform> Children(this Transform Parent) {
+      foreach (Transform child in Parent) {
+        yield return child;
+      }
+    }
  }
