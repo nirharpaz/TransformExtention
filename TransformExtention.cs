@@ -4,34 +4,60 @@ using UnityEditor;
  public static class TransformExtension
  {
      //Breadth-first search
-     public static Transform FindDeepChild(this Transform Parent, string Name)
-     {
-         var result = Parent.Find(Name);
-         if (result != null)
-             return result;
-         foreach(Transform child in Parent)
-         {
-             result = child.FindDeepChild(Name);
-             if (result != null)
-                 return result;
-         }
-         return null;
-     }
- 
+    public static Transform FindChildBFS(this Transform Parent, string Name)
+    {
+        var result = Parent.Find(Name);
+        if (result != null)
+            return result;
+        foreach(Transform child in Parent)
+        {
+            result = child.FindChildBFS(Name);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+    
+    //Depth-first search
+    public static Transform FindChildDFS(this Transform Parent, string Name)
+    {
+        foreach(Transform child in Parent)
+        {
+            if(child.name == Name )
+                return child;
+            var result = child.FindChildDFS(Name);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
 
-     //Depth-first search
-     public static Transform FindDeepChildByTag(this Transform Parent, string Tag)
-     {
-         foreach(Transform child in Parent)
-         {
-             if(child.tag == Tag )
-                 return child;
-             var result = child.FindDeepChildByTag(Tag);
-             if (result != null)
-                 return result;
-         }
-         return null;
-     }
+    //Breadth-first search
+    public static Transform FindChildByTagBFS(this Transform Parent, string Tag)
+    {
+        if(child.tag == Tag )
+            return child;
+        foreach(Transform child in Parent)
+        {
+            var result = child.FindChildByTagBFS(Tag);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+    //Depth-first search
+    public static Transform FindChildByTagDFS(this Transform Parent, string Tag)
+    {
+        foreach(Transform child in Parent)
+        {
+            if(child.tag == Tag )
+                return child;
+            var result = child.FindChildByTagDFS(Tag);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
 
     
     public static Transform FindParentWithName(this Transform Child, string Name)
@@ -122,6 +148,8 @@ using UnityEditor;
         else
             mb.StartCoroutine(transform.MoveFromTo(objectToMove,from,to,speed,relativeTo));
     }
+
+    
      public static IEnumerator MoveFromTo (this Transform objectToMove, Vector3 from, Vector3 to, float speed, Space relativeTo = Space.World) {
         bool isRect = (objectToMove is RectTransform);
         float step = (speed / (from - to).magnitude) * Time.fixedDeltaTime;
