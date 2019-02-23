@@ -1,6 +1,11 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
+using System.Linq;
+
+
  public static class TransformExtension
  {
      //Breadth-first search
@@ -17,7 +22,9 @@ using UnityEditor;
         }
         return null;
     }
+
     
+
     //Depth-first search
     public static Transform FindChildDFS(this Transform Parent, string Name)
     {
@@ -32,19 +39,33 @@ using UnityEditor;
         return null;
     }
 
+    public static Transform FindChildbyTag(this Transform Parent, string Tag)
+    {
+        foreach(Transform child in Parent)
+        {
+            if(child.tag == Tag)
+                return child;    
+        }
+        return null;
+    }
+
+
     //Breadth-first search
     public static Transform FindChildByTagBFS(this Transform Parent, string Tag)
     {
-        if(child.tag == Tag )
-            return child;
+        var result = Parent.FindChildbyTag(Tag);
+        if (result != null)
+            return result;
         foreach(Transform child in Parent)
         {
-            var result = child.FindChildByTagBFS(Tag);
+            result = child.FindChildByTagBFS(Tag);
             if (result != null)
                 return result;
         }
         return null;
     }
+
+
     //Depth-first search
     public static Transform FindChildByTagDFS(this Transform Parent, string Tag)
     {
@@ -80,79 +101,106 @@ using UnityEditor;
         else return FindParentWithTag(Child.parent, Tag);
     }
 
-    public static Transform FindChildByTag(this Transform Parent, string Tag)
-    {
-         foreach(Transform child in Parent)
-         {
-             if(child.tag == Tag )
-                 return child;
-         }
-         return null;
-     }
-
     public static Transform ClearChildren(this Transform transform)
-     {
-         foreach (Transform child in transform) {
-             GameObject.Destroy(child.gameObject);
-         }
-         return transform;
-     }
-
-
-    public static void MoveChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild)
     {
+        foreach (Transform child in transform) 
+        {
+            GameObject.Destroy(child.gameObject);
+        }
+        return transform;
+    }
+
+
+    public static List<Transform> MoveChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild)
+    {
+        List<Transform> toReturn = new List<Transform>();
         for (int i=fromChild; i<toChild; i++)
         {
-            parent.GetChild(i).SetParent(newParent);
+            Transform Child = parent.GetChild(i);
+            Child.SetParent(newParent);
+
+            toReturn.Add(Child);
         }
+
+        return toReturn;
     }
  
-    public static void MoveAllChildrenToDifferentParent(this Transform parent, Transform newParent)
+    public static List<Transform> MoveAllChildrenToDifferentParent(this Transform parent, Transform newParent)
     {
         int to = parent.childCount;
-        MoveChildrenToDifferentParent(parent, newParent, 0, to);
-    }
+        
+        List<Transform> toReturn = MoveChildrenToDifferentParent(parent, newParent, 0, to);
 
-    public static void CopyChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild)
-    {
-        for (int i=fromChild; i<toChild; i++)
-        {
-            GameObject child = parent.GetChild(i).gameObject;
-            GameObject newChild = PrefabUtility.InstantiatePrefab(child) as GameObject;
-            newChild.transform.SetParent(newParent);
-        }
-    }
- 
-    public static void CopyChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild, Vector3 childPosition, Space relativeTo = Space.World)
-    {
-        for (int i=fromChild; i<toChild; i++)
-        {
-            GameObject child = parent.GetChild(i).gameObject;
-            GameObject newChild = PrefabUtility.InstantiatePrefab(child) as GameObject;
-            newChild.transform.SetParent(newParent);
-
-            if(relativeTo == Space.World)
-                    newChild.transform.position = childPosition;
-            else if (relativeTo == Space.Self)
-                    newChild.transform.localPosition = childPosition;
-        }
-    }
-
-    public static void MoveFromTo (this Transform objectToMove, Vector3 from, Vector3 to, float speed, Space relativeTo = Space.World)
-    {
-        MonoBehaviour mb =objectToMove.GetComponent<MonoBehaviour>();
-        if (mb==null)
-        {
-            Debug.LogError("You are trying to call this function from a non-MonoBehaviour script. Please use a MonoBehaviour script or use StartCoroutine(transform.MoveFromTo(...))");
-        }
-        else
-            mb.StartCoroutine(transform.MoveFromTo(objectToMove,from,to,speed,relativeTo));
+        return toReturn;
     }
 
     
-     public static IEnumerator MoveFromTo (this Transform objectToMove, Vector3 from, Vector3 to, float speed, Space relativeTo = Space.World) {
+    public static List<Transform> CopyChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild)
+    {
+        List<Transform> toReturn = new List<Transform>();
+        for (int i=fromChild; i<toChild; i++)
+        {
+            Transform newChild = CopyChild(newParent,parent.GetChild(i));
+
+            toReturn.Add(newChild);
+        }
+        return toReturn;
+    }
+ 
+
+    
+
+    public static List<Transform> CopyChildrenToDifferentParent(this Transform parent, Transform newParent, int fromChild, int toChild, Vector3 childPosition, Space relativeTo = Space.World)
+    {
+        List<Transform> toReturn = parent.CopyChildrenToDifferentParent(newParent,fromChild,toChild);
+
+        foreach (Transform newChild in toReturn)
+        {
+            PlaceInPosition(newChild,childPosition,relativeTo);
+        }
+
+        return toReturn;
+
+    }
+
+    public static List<Transform> CopyAllChildrenToDifferentParent(this Transform parent, Transform newParent, Vector3 childPosition, Space relativeTo = Space.World)
+    {
+       
+        int to = parent.childCount;
+
+        List<Transform> toReturn = CopyChildrenToDifferentParent(parent, newParent, 0, to,childPosition, relativeTo);
+        
+        return toReturn;
+    }
+
+    public static List<Transform> CopyAllChildrenToDifferentParent(this Transform parent, Transform newParent)
+    {
+       
+        int to = parent.childCount;
+
+        List<Transform> toReturn = CopyChildrenToDifferentParent(parent, newParent, 0, to);
+
+        return toReturn;
+    }
+
+    public static void Move (this Transform objectToMove, Vector3 from, Vector3 to, float speed, Space relativeTo = Space.World)
+    {
+        MonoBehaviour mb =objectToMove.GetComponent<MonoBehaviour>();
+
+        if (mb==null)
+        {
+            Debug.LogError("You are trying to call this function from a non-MonoBehaviour script. Please use a MonoBehaviour script.");
+        }
+        else
+            mb.StartCoroutine(objectToMove.MoveFromTo(from,to,speed,relativeTo));
+    }
+
+    
+    public static IEnumerator MoveFromTo (this Transform objectToMove, Vector3 from, Vector3 to, float speed, Space relativeTo = Space.World) {
         bool isRect = (objectToMove is RectTransform);
+
         float step = (speed / (from - to).magnitude) * Time.fixedDeltaTime;
+
         float t = 0;
 
         while (t <= 1.0f) {
@@ -177,15 +225,30 @@ using UnityEditor;
         {
             (objectToMove as RectTransform).anchoredPosition = to;
         }
-        else if(relativeTo==Space.World)
-        {
-            objectToMove.position = to;
-        }
-        else if(relativeTo==Space.Self)
-        {
-            objectToMove.localPosition = to;
-        } 
+        else 
+            PlaceInPosition(objectToMove,to,relativeTo);
+        
+    }
+    
+    // helper functions
+    static Transform CopyChild (Transform newParent, Transform Child)
+    {   
+        Transform newChild = UnityEngine.Object.Instantiate(Child) as Transform;
+        newChild.SetParent(newParent);
+        
+        return newChild;
     }
 
+    static void PlaceInPosition(Transform child, Vector3 Position, Space relativeTo)
+    {
+        if(relativeTo == Space.World)
+        {
+            child.transform.position = Position;
+        }
+        else if (relativeTo == Space.Self)
+        {
+            child.transform.localPosition = Position;
+        }
+    }
 
  }
