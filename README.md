@@ -5,9 +5,15 @@ Included:
 
 FindChildByTag()
 
-FindDeepChild()
+FindChildBFS() //recursive - Breadth-first search
 
-FindDeepChildByTag()
+FindChildDFS() //recursive - Depth-first search
+
+FindChildbyTag()
+
+FindChildbyTagBFS() //recursive - Breadth-first search
+
+FindChildbyTagDFS() //recursive - Depth-first search
 
 FindParentWithName()
 
@@ -19,6 +25,12 @@ MoveChildrenToParent()
 
 MoveChildrenToDifferentParent()
 
+MoveAllChildrenToDifferentParent()
+
 CopyChildrenToDifferentParent()
+
+CopyAllChildrenToDifferentParent()
+
+Move() //function invokation of MoveFromTo();
 
 MoveFromTo()
