@@ -8,7 +8,6 @@ The magic will continue from there.
 
 Included:
 
-FindChildByTag()
 
 FindChildBFS() //recursive - Breadth-first search
 
