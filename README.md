@@ -1,6 +1,11 @@
 # TransformExtention
 Static Extension script to Unity Transform class
 
+Instructions:
+Download the script and throw into your Assets folder.
+The magic will continue from there.
+
+
 Included:
 
 FindChildByTag()
