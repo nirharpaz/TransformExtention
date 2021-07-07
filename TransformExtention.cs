@@ -62,7 +62,7 @@ using System.Linq;
     //Depth-first search
     public static Transform FindChildByTagDFS(this Transform Parent, string Tag)
     {
-      return Parent.FindChildbyTag(Tag);
+      return Parent.FindChildbyTag(Tag)??
         Parent.Children()
           .Select(child => child.FindChildByTagDFS(Tag))
           .Where(result => result != null)
